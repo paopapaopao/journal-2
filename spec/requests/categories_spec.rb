@@ -35,19 +35,10 @@ RSpec.describe 'Categories', type: :request do
   end
 
   describe 'GET /show' do
-    context 'When subject is not saved' do
-      it 'finishes method unsuccessfully' do
-        get category_path(subject)
-        expect(response).to_not be_successful
-      end
-    end
-
-    context 'When subject is saved' do
-      it 'finishes method successfully' do
-        subject_save
-        get category_path(subject)
-        expect(response).to be_successful
-      end
+    it 'finishes method successfully' do
+      subject_save
+      get category_path(subject)
+      expect(response).to be_successful
     end
   end
 
@@ -59,68 +50,72 @@ RSpec.describe 'Categories', type: :request do
   end
 
   describe 'GET /edit' do
-    context 'When subject is not saved' do
-      it 'finishes method unsuccessfully' do
-        get edit_category_path(subject)
-        expect(response).to_not be_successful
-      end
-    end
-
-    context 'When subject is saved' do
-      it 'finishes method successfully' do
-        category_save
-        get edit_category_path(subject)
-        expect(response).to be_successful
-      end
+    it 'finishes method successfully' do
+      subject_save
+      get edit_category_path(subject)
+      expect(response).to be_successful
     end
   end
 
   describe 'POST /create' do
     context 'With invalid parameters' do
-      it 'finishes method unsuccessfully' do
-        category_save
+      it "category count remains the same" do
+        expect {
+          post categories_path, params: { category: invalid_attributes }
+        }.to change(Category, :count).by(0)
+      end
+
+      it "remains in the 'new' page)" do
         post categories_path, params: { category: invalid_attributes }
-        expect(category_count).to eq 0
         expect(response).to_not be_successful
       end
     end
 
     context 'With valid parameters' do
-      it 'finishes method successfully' do
-        category_save
+      it "increases category count by 1" do
+        expect {
+          post categories_path, params: { category: valid_attributes }
+        }.to change(Category, :count).by(1)
+      end
+
+      it "redirects to the created category" do
         post categories_path, params: { category: valid_attributes }
-        expect(category_count).to eq 1
-        expect(response).to be_successful
+        expect(response).to redirect_to(category_path(Category.last))
       end
     end
   end
 
   describe 'PATCH /update' do
     context 'With invalid parameters' do
-      it 'finishes method unsuccessfully' do
-        category_save
+      it "remains in the 'edit' page)" do
+        subject_save
         patch category_path(subject), params: { category: invalid_attributes }
-        expect(category_count).to eq 1
         expect(response).to_not be_successful
       end
     end
 
     context 'With valid parameters' do
-      it 'finishes method successfully' do
-        category_save
+      it "redirects to the updated category" do
+        subject_save
         patch category_path(subject), params: { category: new_attributes }
-        expect(category_count).to eq 1
-        expect(response).to redirect_to(:category)
+        subject.reload
+        expect(response).to redirect_to(category_path(subject))
       end
     end
   end
 
   describe 'DELETE /destroy' do
-    it 'finishes method successfully' do
-      category_save
+    it "decreases category count by 1" do
+      subject_save
+      expect {
+        delete category_path(subject)
+      }.to change(Category, :count).by(-1)
+    end
+
+    it "redirects to the 'index' page" do
+      subject_save
       delete category_path(subject)
-      expect(category_count).to eq 0
-      expect(response).to redirect_to(root_path)
+      expect(response).to redirect_to(categories_path)
     end
   end
 end
