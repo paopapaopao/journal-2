@@ -7,24 +7,38 @@ RSpec.describe "ViewingCategories", type: :system do
 
   let(:id) { Category.find_by(title: 'Category Title').id }
 
-  it 'views a category' do
+  it "redirects to the 'new' page" do
     visit root_path
     click_on 'New Category'
-
     expect(page).to have_current_path(new_category_path)
+  end
+
+  it 'redirects to the created category' do
     fill_in 'Title', with: 'Category Title'
     fill_in 'Description', with: 'Category Description'
     click_on 'Create Category'
-
     expect(page).to have_current_path(category_path(id))
-    expect(page).to have_content('Category Title')
-    expect(page).to have_content('Category Description')
+  end
 
+  it 'page shows category title' do
+    expect(page).to have_content('Category Title')
+  end
+
+  it 'page shows category description' do
+    expect(page).to have_content('Category Description')
+  end
+
+  it 'redirect to the category' do
     visit root_path
     click_link 'Category Title'
-
     expect(page).to have_current_path(category_path(id))
+  end
+
+  it 'page shows category title' do
     expect(page).to have_content('Category Title')
+  end
+
+  it 'page shows category description' do
     expect(page).to have_content('Category Description')
   end
 
