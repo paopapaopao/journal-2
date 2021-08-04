@@ -7,7 +7,7 @@ RSpec.describe Category, type: :model do
 
   let :existing_category do
     described_class.create(
-      title: 'not a unique title'
+      title: 'not a unique title',
       description: 'description'
     )
   end
