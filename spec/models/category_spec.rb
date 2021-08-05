@@ -74,8 +74,16 @@ RSpec.describe Category, type: :model do
   end
 
   context 'When description is between minimum and maximum' do
-    it 'Valid' do
+    it do
       subject.description = 'a' * 50
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'When both attributes are valid' do
+    it do
+      subject.title = 'title'
+      subject.description = 'description'
       expect(subject).to be_valid
     end
   end
