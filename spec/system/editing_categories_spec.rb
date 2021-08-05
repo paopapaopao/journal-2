@@ -9,31 +9,56 @@ RSpec.describe "EditingCategories", type: :system do
   let(:category_count) { Category.count }
   let(:category) { Category.find_by(title: 'Category Title Edited') }
 
-  it 'edits a category' do
+  it "redirects to the 'new' page" do
     visit root_path
     click_on 'New Category'
-
     expect(page).to have_current_path(new_category_path)
+  end
+
+  it 'redirects to the created category' do
     fill_in 'Title', with: 'Category Title'
     fill_in 'Description', with: 'Category Description'
     click_on 'Create Category'
-
     expect(page).to have_current_path(category_path(id))
-    expect(page).to have_content('Category Title')
-    expect(page).to have_content('Category Description')
-    click_link 'Edit'
+  end
 
+  it 'page shows category title' do
+    expect(page).to have_content('Category Title')
+  end
+
+  it 'page shows category description' do
+    expect(page).to have_content('Category Description')
+  end
+
+  it "redirect to the 'edit' page" do
+    click_link 'Edit'
     expect(page).to have_current_path(edit_category_path(id))
+  end
+
+  it 'redirect to the updated category' do
     fill_in 'Title', with: 'Category Title Edited'
     fill_in 'Description', with: 'Category Description Edited'
     click_on 'Update Category'
-
     expect(page).to have_current_path(category_path(id))
-    expect(page).to have_content('Category Title Edited')
-    expect(page).to have_content('Category Description Edited')
+  end
 
+  it 'page shows updated title' do
+    expect(page).to have_content('Category Title Edited')
+  end
+
+  it 'page shows updated description' do
+    expect(page).to have_content('Category Description Edited')
+  end
+
+  it 'category count stays the same' do
     expect(category_count).to eq 1
+  end
+
+  it 'category title is updated' do
     expect(category.title).to eq('Category Title Edited')
+  end
+
+  it 'category description is updated' do
     expect(category.description).to eq('Category Description Edited')
   end
 
