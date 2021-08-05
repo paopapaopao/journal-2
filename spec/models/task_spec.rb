@@ -48,6 +48,7 @@ RSpec.describe Task, type: :model do
       subject.description = 'a' * 50
       expect(subject).to be_valid
     end
+  end
 
   context 'with associations' do
     it 'belongs to a category' do
