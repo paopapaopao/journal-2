@@ -7,10 +7,12 @@ RSpec.describe Category, type: :model do
 
   let :existing_category do
     described_class.create(
-      title: 'not a unique title'
+      title: 'not a unique title',
       description: 'description'
     )
   end
+
+  let(:category_on_tasks) { Category.reflect_on_association(:tasks).macro }
 
   context 'When title is not present' do
     context 'It is nil' do
@@ -77,6 +79,12 @@ RSpec.describe Category, type: :model do
     it 'Valid' do
       subject.description = 'a' * 50
       expect(subject).to be_valid
+    end
+  end
+
+  context 'with associations' do
+    it 'has many tasks' do
+      expect(category_on_tasks).to eq :has_many
     end
   end
 end
