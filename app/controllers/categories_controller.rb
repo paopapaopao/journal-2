@@ -12,6 +12,13 @@ class CategoriesController < ApplicationController
   end
 
   def create
+    @category = Category.new(category_params)
+
+    if @category.save
+      redirect_to @category
+    else
+      render :new
+    end
   end
 
   def update
@@ -19,4 +26,9 @@ class CategoriesController < ApplicationController
 
   def destroy
   end
+
+  private
+    def category_params
+      params.require(:category).permit(:title, :description)
+    end
 end
