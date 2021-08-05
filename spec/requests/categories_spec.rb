@@ -67,7 +67,7 @@ RSpec.describe 'Categories', type: :request do
 
       it "remains in the 'new' page)" do
         post categories_path, params: { category: invalid_attributes }
-        expect(response).to_not be_successful
+        expect(response).to be_successful
       end
     end
 
@@ -90,11 +90,25 @@ RSpec.describe 'Categories', type: :request do
       it "remains in the 'edit' page)" do
         subject_save
         patch category_path(subject), params: { category: invalid_attributes }
-        expect(response).to_not be_successful
+        expect(response).to be_successful
       end
     end
 
     context 'With valid parameters' do
+      it "updates the category title" do
+        subject_save
+        patch category_path(subject), params: { category: new_attributes }
+        subject.reload
+        expect(subject.title).to eq('Category Title Edited')
+      end
+
+      it "updates the category description" do
+        subject_save
+        patch category_path(subject), params: { category: new_attributes }
+        subject.reload
+        expect(subject.description).to eq('Category Description Edited')
+      end
+
       it "redirects to the updated category" do
         subject_save
         patch category_path(subject), params: { category: new_attributes }
