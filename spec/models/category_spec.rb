@@ -1,9 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Category, type: :model do
-  subject do
-    described_class.new
-  end
+  subject { described_class.new }
 
   let :existing_category do
     described_class.create(
@@ -16,14 +14,14 @@ RSpec.describe Category, type: :model do
 
   context 'When title is not present' do
     context 'It is nil' do
-      it 'Invalid' do
+      it do
         subject.title = nil
         expect(subject).to_not be_valid
       end
     end
 
     context 'It is an empty string' do
-      it 'Invalid' do
+      it do
         subject.title = ''
         expect(subject).to_not be_valid
       end
@@ -31,7 +29,7 @@ RSpec.describe Category, type: :model do
   end
 
   context 'When title is not unique' do
-    it 'Invalid' do
+    it do
       existing_category
       subject.title = 'not a unique title'
       expect(subject).to_not be_valid
@@ -39,7 +37,7 @@ RSpec.describe Category, type: :model do
   end
 
   context 'When title is unique' do
-    it 'Invalid' do
+    it do
       subject.title = 'unique title'
       expect(subject).to_not be_valid
     end
@@ -47,14 +45,14 @@ RSpec.describe Category, type: :model do
 
   context 'When description is not present' do
     context 'It is nil' do
-      it 'Invalid' do
+      it do
         subject.description = nil
         expect(subject).to_not be_valid
       end
     end
 
     context 'It is an empty string' do
-      it 'Invalid' do
+      it do
         subject.description = ''
         expect(subject).to_not be_valid
       end
@@ -62,14 +60,14 @@ RSpec.describe Category, type: :model do
   end
 
   context 'When description is shorter than minimum' do
-    it 'Invalid' do
+    it do
       subject.description = 'a' * 9
       expect(subject).to_not be_valid
     end
   end
 
   context 'When description is longer than maximum' do
-    it 'Invalid' do
+    it do
       subject.description = 'a' * 101
       expect(subject).to_not be_valid
     end
