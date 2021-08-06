@@ -60,6 +60,13 @@ RSpec.describe "CreatingCategories", type: :system do
   end
 
   it "category.title == 'Category Title'" do
+    visit root_path
+    click_on 'New Category'
+
+    fill_in 'Title', with: 'Category Title'
+    fill_in 'Description', with: 'Category Description'
+    click_on 'Create Category'
+
     expect(category.title).to eq('Category Title')
   end
 
