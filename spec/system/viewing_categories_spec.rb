@@ -7,76 +7,34 @@ RSpec.describe "ViewingCategories", type: :system do
 
   let(:id) { Category.find_by(title: 'Category Title').id }
 
-  it "redirects to the 'new' page" do
+  before :each do
     visit root_path
     click_on 'New Category'
-    expect(page).to have_current_path(new_category_path)
+
+    fill_in 'Title', with: 'Category Title'
+    fill_in 'Description', with: 'Category Description'
+    click_on 'Create Category'
   end
 
   it 'redirects to the created category' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
     expect(page).to have_current_path(category_path(id))
   end
 
-  it 'page shows category title' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
+  it 'shows title' do
     expect(page).to have_content('Category Title')
   end
 
-  it 'page shows category description' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
+  it 'shows description' do
     expect(page).to have_content('Category Description')
   end
 
-  it 'redirect to the category' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
-    expect(page).to have_current_path(category_path(id))
+  it "goes to 'edit' page" do
+    click_link 'Edit'
+    expect(page).to have_current_path(edit_category_path(id))
   end
 
-  it 'page shows category title' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
-    expect(page).to have_content('Category Title')
+  it "goes to 'index' page" do
+    click_link 'Back'
+    expect(page).to have_current_path(categories_path)
   end
-
-  it 'page shows category description' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
-    expect(page).to have_content('Category Description')
-  end
-
-  # pending "add some scenarios (or delete) #{__FILE__}"
 end
