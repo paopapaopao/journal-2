@@ -40,7 +40,7 @@ RSpec.describe "EditingCategories", type: :system do
     end
 
     it 'redirects to the updated category' do
-      expect(page).to have_current_path(category_path(id))
+      expect(page).to have_current_path(category_path(category))
     end
 
     it 'shows title' do
