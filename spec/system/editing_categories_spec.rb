@@ -5,6 +5,13 @@ RSpec.describe "EditingCategories", type: :system do
     driven_by(:rack_test)
   end
 
+  subject do
+    Category.create(
+      title: 'title',
+      description: 'description'
+    )
+  end
+
   let(:id) { Category.find_by(title: 'Category Title').id }
   let(:category_count) { Category.count }
   let(:category) { Category.find_by(title: 'Category Title Edited') }
@@ -73,11 +80,30 @@ RSpec.describe "EditingCategories", type: :system do
   end
 
   it 'category title is updated' do
+    visit root_path
+    click_on 'New Category'
+
+    fill_in 'Title', with: 'Category Title'
+    fill_in 'Description', with: 'Category Description'
+    click_on 'Create Category'
+
     expect(category.title).to eq('Category Title Edited')
   end
 
   it 'category description is updated' do
-    expect(category.description).to eq('Category Description Edited')
+    visit root_path
+    click_on 'New Category'
+
+    fill_in 'Title', with: 'Category Title'
+    fill_in 'Description', with: 'Category Description'
+    click_on 'Create Category'
+
+    visit root_path
+    click_link 'Edit'
+
+    visit category_path(subject)
+
+    expect(subject.description).to eq('description')
   end
 
   # pending "add some scenarios (or delete) #{__FILE__}"
