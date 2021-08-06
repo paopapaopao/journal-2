@@ -27,6 +27,13 @@ RSpec.describe "CreatingCategories", type: :system do
   end
 
   it 'page shows category title' do
+    visit root_path
+    click_on 'New Category'
+
+    fill_in 'Title', with: 'Category Title'
+    fill_in 'Description', with: 'Category Description'
+    click_on 'Create Category'
+
     expect(page).to have_content('Category Title')
   end
 
