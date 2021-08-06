@@ -1,23 +1,20 @@
 require 'rails_helper'
 
 RSpec.describe "ViewingCategories", type: :system do
-  before do
-    driven_by(:rack_test)
+  let(:category) do
+    Category.create(
+      title: 'Category Title',
+      description: 'Category Description'
+    )
   end
-
-  let(:id) { Category.find_by(title: 'Category Title').id }
 
   before :each do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
+    driven_by(:rack_test)
+    visit category_path(category)
   end
 
-  it 'redirects to the created category' do
-    expect(page).to have_current_path(category_path(id))
+  it 'goes to the created category' do
+    expect(page).to have_current_path(category_path(category))
   end
 
   it 'shows title' do
@@ -30,10 +27,10 @@ RSpec.describe "ViewingCategories", type: :system do
 
   it "goes to 'edit' page" do
     click_link 'Edit'
-    expect(page).to have_current_path(edit_category_path(id))
+    expect(page).to have_current_path(edit_category_path(category))
   end
 
-  it "goes to 'index' page" do
+  it "returns to 'index' page" do
     click_link 'Back'
     expect(page).to have_current_path(categories_path)
   end
