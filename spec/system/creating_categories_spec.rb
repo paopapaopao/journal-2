@@ -71,8 +71,13 @@ RSpec.describe "CreatingCategories", type: :system do
   end
 
   it "category.description == 'Category Description'" do
+    visit root_path
+    click_on 'New Category'
+
+    fill_in 'Title', with: 'Category Title'
+    fill_in 'Description', with: 'Category Description'
+    click_on 'Create Category'
+
     expect(category.description).to eq('Category Description')
   end
-
-  # pending "add some scenarios (or delete) #{__FILE__}"
 end
