@@ -9,35 +9,33 @@ RSpec.describe "DeletingCategories", type: :system do
   let(:category_count) { Category.count }
   let(:category) { Category.find_by(title: 'Category Title') }
 
-  it "redirects to the 'new' page" do
-    visit root_path
-    click_on 'New Category'
-    expect(page).to have_current_path(new_category_path)
-  end
-
-  it 'redirects to the created category' do
+  before :each do
+    visit new_category_path
     fill_in 'Title', with: 'Category Title'
     fill_in 'Description', with: 'Category Description'
     click_on 'Create Category'
-    expect(page).to have_current_path(category_path(id))
+    visit root_path
   end
 
-  it 'page shows category title' do
+  it "goes to the 'index' page" do
+    expect(page).to have_current_path('/')
+  end
+
+  it 'shows title' do
     expect(page).to have_content('Category Title')
   end
 
-  it 'page shows category description' do
+  it 'shows description' do
     expect(page).to have_content('Category Description')
   end
 
   it 'decreases category count by 1' do
-    click_link 'Delete'
+    click_link 'Destroy'
     expect(category_count).to eq 0
   end
 
   it 'category is deleted' do
+    click_link 'Destroy'
     expect(category).to eq nil
   end
-
-  # pending "add some scenarios (or delete) #{__FILE__}"
 end
