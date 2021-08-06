@@ -1,13 +1,23 @@
 require 'rails_helper'
 
 RSpec.describe Task, type: :model do
+  let(:category_create) do
+    Category.create(title: 'Category Title',
+                    description: 'Category Description')
+  end
+
+  before :each do
+    category_create
+  end
+
   subject do
     described_class.new
   end
 
   let :existing_category do
     described_class.create(
-      description: 'description'
+      description: 'description',
+      category_id: category_create.id
     )
   end
 
