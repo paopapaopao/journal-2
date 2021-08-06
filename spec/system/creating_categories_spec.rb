@@ -9,75 +9,44 @@ RSpec.describe "CreatingCategories", type: :system do
   let(:category_count) { Category.count }
   let(:category) { Category.find_by(title: 'Category Title') }
 
-  it "redirects to the 'new' page" do
-    visit root_path
-    click_on 'New Category'
-    expect(page).to have_current_path(new_category_path)
+  before :each do
+    visit new_category_path
   end
 
-  it 'redirects to the created category' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
-    expect(page).to have_current_path(category_path(id))
+  context "When visiting the 'new' category page" do
+    it { expect(page).to have_current_path(new_category_path) }
+    it { expect(page).to have_content('New Category') }
   end
 
-  it 'page shows category title' do
-    visit root_path
-    click_on 'New Category'
+  context 'When creating a category' do
+    before :each do
+      fill_in 'Title', with: 'Category Title'
+      fill_in 'Description', with: 'Category Description'
+      click_on 'Create Category'
+    end
 
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
+    it 'redirects to the created category' do
+      expect(page).to have_current_path(category_path(id))
+    end
 
-    expect(page).to have_content('Category Title')
-  end
+    it 'shows title' do
+      expect(page).to have_content('Category Title')
+    end
 
-  it 'page shows category description' do
-    visit root_path
-    click_on 'New Category'
+    it 'shows description' do
+      expect(page).to have_content('Category Description')
+    end
 
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
+    it 'increases count by 1' do
+      expect(category_count).to eq 1
+    end
 
-    expect(page).to have_content('Category Description')
-  end
+    it "title must equal 'Category Title'" do
+      expect(category.title).to eq('Category Title')
+    end
 
-  it 'increases category count by 1' do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
-    expect(category_count).to eq 1
-  end
-
-  it "category.title == 'Category Title'" do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
-    expect(category.title).to eq('Category Title')
-  end
-
-  it "category.description == 'Category Description'" do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-
-    expect(category.description).to eq('Category Description')
+    it "description must equal 'Category Description'" do
+      expect(category.description).to eq('Category Description')
+    end
   end
 end
