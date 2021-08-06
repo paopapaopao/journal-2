@@ -16,9 +16,13 @@ RSpec.describe "EditingCategories", type: :system do
   end
 
   it 'redirects to the created category' do
+    visit root_path
+    click_on 'New Category'
+
     fill_in 'Title', with: 'Category Title'
     fill_in 'Description', with: 'Category Description'
     click_on 'Create Category'
+
     expect(page).to have_current_path(category_path(id))
   end
 
