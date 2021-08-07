@@ -6,7 +6,9 @@ RSpec.describe 'CreatingTasks', type: :system do
   end
 
   let(:date_today) { Date.today }
+  let(:date_tomorrow) { date_today + 1 }
 
+  let(:category_create) { Category.create(title: 'Category Title', description: 'Category Description') }
   let(:category_id) { Category.find_by(title: 'Category Title').id }
 
   let(:task) { Task.find_by(description: 'Task Description') }
@@ -15,51 +17,88 @@ RSpec.describe 'CreatingTasks', type: :system do
   let(:task_count) { Task.count }
 
   before :each do
-    visit root_path
-    click_on 'New Category'
-
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
+    category_create
+    visit category_path(category_id)
   end
 
-  context 'when all form fields are filled up and submitted' do
+  context 'when a category was created it redirects to itself and a task can be created' do
+    it 'expects form inside' do
+      expect(page).to have_current_path(category_path(category_id))
+    end
+  end
+
+  context 'when all form fields were filled up and submitted' do
     before :each do
       fill_in 'Description', with: 'Task Description'
-      fill_in 'task[priority]', with: date_today
-      click_on 'Create Task'
     end
 
-    it 'redirects to same page' do
-      expect(page).to have_current_path(category_path(category_id))
+    context 'with priority date was date today' do
+      before :each do
+        fill_in 'task[priority]', with: date_today
+        click_on 'Create Task'
+      end
+
+      it 'creates a task' do
+        expect(task_description).to eq('Task Description')
+        expect(task_priority).to eq(date_today)
+        expect(task_count).to eq 1
+      end
+
+      it 'redirects to same page' do
+        expect(page).to have_current_path(category_path(category_id))
+      end
+
+      context 'when navigating under "Tasks for Today"' do
+        it 'shows created task' do
+          within('#today-wrap') { expect(page).to have_content('Task Description') }
+        end
+      end
     end
 
-    it 'renders page with submitted inputs' do
-      expect(page).to have_content('Task Description')
-      expect(page).to have_content(date_today)
-    end
+    context 'with priority date was date tomorrow' do
+      before :each do
+        fill_in 'task[priority]', with: date_tomorrow
+        click_on 'Create Task'
+      end
 
-    it 'creates a task' do
-      expect(task_description).to eq('Task Description')
-      expect(task_priority).to eq(date_today)
-      expect(task_count).to eq 1
+      it 'creates a task' do
+        expect(task_description).to eq('Task Description')
+        expect(task_priority).to eq(date_tomorrow)
+        expect(task_count).to eq 1
+      end
+
+      it 'redirects to same page' do
+        expect(page).to have_current_path(category_path(category_id))
+      end
+
+      context 'when navigating under "Future Tasks"' do
+        it 'shows created task' do
+          within('#future-wrap') { expect(page).to have_content('Task Description') }
+        end
+      end
     end
   end
 
-  context 'when all form fields are not filled up and submitted' do
+  context 'when all form fields were not filled up and submitted' do
     before :each do
       click_on 'Create Task'
-    end
-
-    it 'redirects to same page' do
-      expect(page).to have_current_path(category_path(category_id))
     end
 
     it 'does not create a task' do
-      expect(page).to have_current_path(category_path(category_id))
-
-      expect(task_count).to eq 0
       expect(task).to eq nil
+      expect(task_count).to eq 0
+    end
+
+    it 'redirects to same page' do
+      expect(page).to have_current_path(category_path(category_id))
+    end
+
+    context 'with description blank' do
+      it 'renders page without changes' do
+        within('#overdue-wrap') { expect(page).to have_content('Nothing else here yet.') }
+        within('#today-wrap') { expect(page).to have_content('Nothing else here yet.') }
+        within('#future-wrap') { expect(page).to have_content('Nothing else here yet.') }
+      end
     end
   end
 
