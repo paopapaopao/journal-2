@@ -5,29 +5,40 @@ RSpec.describe 'DeletingTasks', type: :system do
     driven_by(:rack_test)
   end
 
-  let(:click_destroy_task) { find("a[href='/categories/#{category_id}/tasks/#{task_id}']").click }
+  let(:date_today) { Date.today }
 
+  let(:category_create) { Category.create(title: 'Category Title', description: 'Category Description') }
   let(:category_id) { Category.find_by(title: 'Category Title').id }
 
-  let(:task_id) { Task.find_by(details: 'Task Details').id }
+  let(:task_create) { Task.create(description: 'Task Description', priority: date_today, category_id: category_id) }
+  let(:task_id) { Task.find_by(description: 'Task Description').id }
   let(:task_count) { Task.count }
+  let(:task_deleted) { Task.find_by(description: 'Task Description') }
 
-  let(:task) { Task.find_by(details: 'Task Details') }
+  let(:click_destroy_task) { find("a[href='/categories/#{category_id}/tasks/#{task_id}']").click }
 
-  it 'deletes a task' do
-    visit root_path
-    click_on 'New Category'
+  before :each do
+    category_create
+    task_create
 
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
+    visit category_path(category_id)
+  end
 
-    fill_in 'Description', with: 'Task Description'
-    click_on 'Create Task'
+  context 'when task was created within its category' do
+    it 'redirects to same page' do
+      expect(page).to have_current_path(category_path(category_id))
+    end
+  end
 
-    click_destroy_task
-    expect(task_count).to eq 0
-    expect(task).to eq nil
+  context 'with that task can be deleted' do
+    before do
+      click_destroy_task
+    end
+
+    it 'deletes the task' do
+      expect(task_deleted).to eq nil
+      expect(task_count).to eq 0
+    end
   end
 
   # pending "add some scenarios (or delete) #{__FILE__}"
