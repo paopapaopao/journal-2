@@ -5,23 +5,24 @@ RSpec.describe User, type: :model do
 
   let :existing_user do
     described_class.create(
-      email_address: 'not.unique@example.com',
-      password: 'password',
-      username: 'username'
+      email: 'not.unique@example.com',
+      encrypted_password: 'password'
     )
   end
+
+  let(:user_on_categories) { User.reflect_on_association(:categories).macro }
 
   context 'When email address is not present' do
     context 'It is nil' do
       it do
-        subject.email_address = nil
+        subject.email = nil
         expect(subject).to_not be_valid
       end
     end
 
     context 'It is an empty string' do
       it do
-        subject.email_address = ''
+        subject.email = ''
         expect(subject).to_not be_valid
       end
     end
@@ -30,14 +31,14 @@ RSpec.describe User, type: :model do
   context 'When email address is not unique' do
     it do
       existing_user
-      subject.email_address = 'not.unique@example.com'
+      subject.email = 'not.unique@example.com'
       expect(subject).to_not be_valid
     end
   end
 
   context 'When email address is unique' do
     it do
-      subject.email_address = 'unique@example.com'
+      subject.email = 'unique@example.com'
       expect(subject).to_not be_valid
     end
   end
@@ -45,47 +46,16 @@ RSpec.describe User, type: :model do
   context 'When password is not present' do
     context 'It is nil' do
       it do
-        subject.password = nil
+        subject.encrypted_password = nil
         expect(subject).to_not be_valid
       end
     end
 
     context 'It is an empty string' do
       it do
-        subject.password = ''
+        subject.encrypted_password = ''
         expect(subject).to_not be_valid
       end
     end
   end
-
-  context 'When password is shorter than minimum' do
-    it do
-      subject.password = 'a' * 9
-      expect(subject).to_not be_valid
-    end
-  end
-
-  context 'When username is not present' do
-    context 'It is nil' do
-      it do
-        subject.username = nil
-        expect(subject).to_not be_valid
-      end
-    end
-
-    context 'It is an empty string' do
-      it do
-        subject.username = ''
-        expect(subject).to_not be_valid
-      end
-    end
-  end
-
-  context 'When username is present' do
-    it do
-      subject.username = 'username'
-      expect(subject).to be_valid
-    end
-  end
-
 end
