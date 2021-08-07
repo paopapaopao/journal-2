@@ -13,7 +13,7 @@
   </thead>
 
   <tbody>
-    <% @categories.each do |category| %>
+    <% current_user.categories.each do |category| %>
       <tr>
         <td><%= category.id %></td>
         <td><%= category.title %></td>
