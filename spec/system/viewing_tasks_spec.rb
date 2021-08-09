@@ -3,29 +3,38 @@ require 'rails_helper'
 RSpec.describe 'ViewingTasks', type: :system do
   before do
     driven_by(:rack_test)
+    sign_in user
   end
 
-  let(:category) { Category.create(title: 'Category Title', description: 'Category Description') }
-
-  let(:task_yesterday) do
-    Task.new(description: 'Task Description', priority: Date.yesterday,
-             category_id: category.id).save(validate: false)
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
   end
 
-  let(:task_today) { Task.create(description: 'Task Description', priority: Date.today, category_id: category.id) }
+  let(:category) do
+    Category.create(title: 'Category Title',
+                    description: 'Category Description',
+                    user_id: user.id)
+  end
 
-  let(:task_tomorrow) do
-    Task.create(description: 'Task Description', priority: Date.tomorrow, category_id: category.id)
+  let(:click_show_category) { find("a[href='/categories/#{category.id}']").click }
+
+  let(:task_today) do
+    Task.create(description: 'Task Description',
+                priority: Date.today,
+                user_id: user.id,
+                category_id: category.id)
   end
 
   context 'when navigating in page of all categories' do
-    before do
+    it 'shows heading' do
       visit categories_path
+      within('#today-wrap') { expect(page).to have_content('Tasks for Today') }
     end
 
     context 'when there are no tasks for today yet' do
-      it 'shows heading' do
-        within('#today-wrap') { expect(page).to have_content('Tasks for Today') }
+      before do
+        visit categories_path
       end
 
       it 'shows "nothing" message' do
@@ -37,14 +46,11 @@ RSpec.describe 'ViewingTasks', type: :system do
       before do
         category
         task_today
+        visit categories_path
       end
 
-      it 'shows heading' do
-        within('#today-wrap') { expect(page).to have_content('Tasks for Today') }
-      end
-
-      it 'shows "nothing" message' do
-        within('#today-wrap') { expect(page).to have_content('No tasks for today.') }
+      it 'shows created task' do
+        within('#today-wrap') { expect(page).to have_content(task_today.description) }
       end
     end
   end
@@ -55,12 +61,19 @@ RSpec.describe 'ViewingTasks', type: :system do
       visit categories_path
     end
 
-    context 'when there are no tasks yet' do
-      before do
-        click_on 'Category Title'
+    context 'when navigating under "Overdue Tasks"' do
+      let(:task_yesterday) do
+        Task.new(description: 'Task Description',
+                 priority: Date.yesterday,
+                 user_id: user.id,
+                 category_id: category.id)
       end
 
-      context 'when navigating under "Overdue Tasks"' do
+      context 'when there are no tasks' do
+        before do
+          click_show_category
+        end
+
         it 'shows heading' do
           within('#overdue-wrap') { expect(page).to have_content('Overdue Tasks') }
         end
@@ -70,7 +83,24 @@ RSpec.describe 'ViewingTasks', type: :system do
         end
       end
 
-      context 'when navigating under "Tasks for Today"' do
+      context 'when a task was overdue' do
+        before do
+          task_yesterday.save(validate: false)
+          click_show_category
+        end
+
+        it 'shows task' do
+          within('#overdue-wrap') { expect(page).to have_content(task_yesterday.description) }
+        end
+      end
+    end
+
+    context 'when navigating under "Tasks for Today"' do
+      context 'when there are no tasks' do
+        before do
+          click_show_category
+        end
+
         it 'shows heading' do
           within('#today-wrap') { expect(page).to have_content('Tasks for Today') }
         end
@@ -80,7 +110,31 @@ RSpec.describe 'ViewingTasks', type: :system do
         end
       end
 
-      context 'when navigating under "Future Tasks"' do
+      context 'when a task was created' do
+        before do
+          task_today
+          click_show_category
+        end
+
+        it 'shows task' do
+          within('#today-wrap') { expect(page).to have_content(task_today.description) }
+        end
+      end
+    end
+
+    context 'when navigating under "Future Tasks"' do
+      let(:task_tomorrow) do
+        Task.create(description: 'Task Description',
+                    priority: Date.tomorrow,
+                    user_id: user.id,
+                    category_id: category.id)
+      end
+
+      context 'when there are no tasks' do
+        before do
+          click_show_category
+        end
+
         it 'shows heading' do
           within('#future-wrap') { expect(page).to have_content('Future Tasks') }
         end
@@ -89,59 +143,17 @@ RSpec.describe 'ViewingTasks', type: :system do
           within('#future-wrap') { expect(page).to have_content('Nothing else here yet.') }
         end
       end
-    end
 
-    context 'when a task for today was created' do
-      before do
-        task_today
-        click_on 'Category Title'
-      end
-
-      it 'redirects to its category' do
-        expect(page).to have_current_path(category_path(category))
-      end
-
-      context 'when navigating under "Tasks for Today"' do
-        it 'shows created task' do
-          within('#today-wrap') { expect(page).to have_content('Task Description') }
+      context 'when a task was created' do
+        before do
+          task_tomorrow
+          click_show_category
         end
-      end
-    end
 
-    context 'when a future task was created' do
-      before do
-        task_tomorrow
-        click_on 'Category Title'
-      end
-
-      it 'redirects to its category' do
-        expect(page).to have_current_path(category_path(category))
-      end
-
-      context 'when navigating under "Future Tasks"' do
-        it 'shows created task' do
-          within('#future-wrap') { expect(page).to have_content('Task Description') }
-        end
-      end
-    end
-
-    context 'when a task was overdue' do
-      before do
-        task_yesterday
-        click_on 'Category Title'
-      end
-
-      it 'redirects to its category' do
-        expect(page).to have_current_path(category_path(category))
-      end
-
-      context 'when navigating under "Overdue Tasks"' do
-        it 'shows created task' do
-          within('#overdue-wrap') { expect(page).to have_content('Task Description') }
+        it 'shows task' do
+          within('#future-wrap') { expect(page).to have_content(task_tomorrow.description) }
         end
       end
     end
   end
-
-  # pending "add some scenarios (or delete) #{__FILE__}"
 end

@@ -3,16 +3,27 @@ require 'rails_helper'
 RSpec.describe 'DeletingTasks', type: :system do
   before do
     driven_by(:rack_test)
+    sign_in user
     category
   end
 
-  let(:category) { Category.create(title: 'Category Title', description: 'Category Description') }
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
+  end
+
+  let(:category) do
+    Category.create(title: 'Category Title',
+                    description: 'Category Description',
+                    user_id: user.id)
+  end
 
   describe Task do
     let(:attributes) do
       {
         description: 'Task Description',
         priority: Date.today,
+        user_id: user.id,
         category_id: category.id
       }
     end
@@ -42,6 +53,4 @@ RSpec.describe 'DeletingTasks', type: :system do
       end
     end
   end
-
-  # pending "add some scenarios (or delete) #{__FILE__}"
 end

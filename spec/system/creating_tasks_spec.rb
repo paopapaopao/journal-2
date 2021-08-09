@@ -3,84 +3,64 @@ require 'rails_helper'
 RSpec.describe 'CreatingTasks', type: :system do
   before do
     driven_by(:rack_test)
+    sign_in user
     category
     visit category_path(category)
   end
 
-  let(:category) { Category.create(title: 'Category Title', description: 'Category Description') }
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
+  end
+
+  let(:category) do
+    Category.create(title: 'Category Title',
+                    description: 'Category Description',
+                    user_id: user.id)
+  end
+
+  context 'when a category was created it redirects to itself and a task can be created' do
+    it 'expects form inside' do
+      expect(page).to have_current_path(category_path(category))
+    end
+
+    it 'expects hidden field' do
+      expect(find('input[type="hidden"]', visible: false).value).to eq(user.id.to_s)
+    end
+  end
 
   describe Task do
     subject { described_class.find_by(description: 'Task Description') }
     let(:subject_count) { Task.count }
 
-    context 'when a category was created it redirects to itself and a task can be created' do
-      it 'expects form inside' do
-        expect(page).to have_current_path(category_path(category))
-      end
-    end
+    let(:click_create) { find('input[type="submit"]').click }
 
     context 'when all form fields were filled up and submitted' do
-      let(:subject_description) { subject.description }
-      let(:subject_priority) { subject.priority }
+      let(:date_today) { Date.today }
 
       before do
         fill_in 'Description', with: 'Task Description'
+        fill_in 'task[priority]', with: date_today
+        click_create
       end
 
-      context 'with priority date was date today' do
-        let(:date_today) { Date.today }
-
-        before do
-          fill_in 'task[priority]', with: date_today
-          click_on 'Create Task'
-        end
-
-        it 'creates a task' do
-          expect(subject_description).to eq('Task Description')
-          expect(subject_priority).to eq(date_today)
-          expect(subject_count).to eq 1
-        end
-
-        it 'redirects to same page' do
-          expect(page).to have_current_path(category_path(category))
-        end
-
-        context 'when navigating under "Tasks for Today"' do
-          it 'shows created task' do
-            within('#today-wrap') { expect(page).to have_content('Task Description') }
-          end
-        end
+      it 'creates a task' do
+        expect(subject).to_not eq nil
+        expect(subject_count).to eq 1
       end
 
-      context 'with priority date was date tomorrow' do
-        let(:date_tomorrow) { Date.tomorrow }
+      it 'redirects to same page' do
+        expect(page).to have_current_path(category_path(category))
+      end
 
-        before do
-          fill_in 'task[priority]', with: date_tomorrow
-          click_on 'Create Task'
-        end
-
-        it 'creates a task' do
-          expect(subject_description).to eq('Task Description')
-          expect(subject_priority).to eq(date_tomorrow)
-          expect(subject_count).to eq 1
-        end
-
-        it 'redirects to same page' do
-          expect(page).to have_current_path(category_path(category))
-        end
-
-        context 'when navigating under "Future Tasks"' do
-          it 'shows created task' do
-            within('#future-wrap') { expect(page).to have_content('Task Description') }
-          end
-        end
+      it 'renders page with submitted inputs' do
+        expect(page).to have_content(subject.description)
       end
     end
 
     context 'when all form fields were not filled up and submitted' do
       before do
-        click_on 'Create Task'
+        click_create
       end
 
       it 'does not create a task' do
@@ -92,15 +72,11 @@ RSpec.describe 'CreatingTasks', type: :system do
         expect(page).to have_current_path(category_path(category))
       end
 
-      context 'with description blank' do
-        it 'renders page without changes' do
-          within('#overdue-wrap') { expect(page).to have_content('Nothing else here yet.') }
-          within('#today-wrap') { expect(page).to have_content('Nothing else here yet.') }
-          within('#future-wrap') { expect(page).to have_content('Nothing else here yet.') }
-        end
+      it 'renders page without changes' do
+        within('#overdue-wrap') { expect(page).to have_content('Nothing else here yet.') }
+        within('#today-wrap') { expect(page).to have_content('Nothing else here yet.') }
+        within('#future-wrap') { expect(page).to have_content('Nothing else here yet.') }
       end
     end
   end
-
-  # pending "add some scenarios (or delete) #{__FILE__}"
 end
