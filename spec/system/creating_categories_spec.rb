@@ -1,97 +1,93 @@
 require 'rails_helper'
 
-RSpec.describe "CreatingCategories", type: :system do
-  let(:existing_category) do
-    Category.create(
-      title: 'not a unique title',
-      description: 'description'
-    )
-  end
-  let(:category) { Category.find_by(title: 'Category Title') }
-  let(:category_count) { Category.count }
-
-  before :each do
+RSpec.describe 'CreatingCategories', type: :system do
+  before do
     driven_by(:rack_test)
-    visit new_category_path
   end
 
-  context "When visiting the 'new' category page" do
-    it { expect(page).to have_current_path(new_category_path) }
-    it { expect(page).to have_content('New Category') }
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
   end
 
-  context 'With invalid field values' do
-    context 'When title is not present' do
-      it do
-        fill_in 'Title', with: ''
-        click_on 'Create Category'
-        expect(page).to have_content("Title can't be blank")
+  describe Category do
+    subject do
+      described_class.find_by(title: 'Category Title',
+                              description: 'Category Description')
+    end
+
+    let(:subject_count) { Category.count }
+
+    let(:click_new) { find('a[href="/categories/new"]').click }
+    let(:click_create) { find('input[type="submit"]').click }
+
+    context 'when user logged in' do
+      before do
+        sign_in user
+        visit categories_path
+        click_new
+      end
+
+      context 'when navigating in page of all categories then a category can be created' do
+        it 'goes to form' do
+          expect(page).to have_current_path(new_category_path)
+        end
+
+        it 'expects hidden field' do
+          expect(find('input[type="hidden"]', visible: false).value).to eq(user.id.to_s)
+        end
+      end
+
+      context 'when all form fields were filled up and submitted' do
+        before do
+          fill_in 'Title', with: 'Category Title'
+          fill_in 'Description', with: 'Category Description'
+          click_create
+        end
+
+        it 'creates a category' do
+          expect(subject).to_not eq nil
+          expect(subject_count).to eq 1
+        end
+
+        it 'redirects to created category' do
+          expect(page).to have_current_path(category_path(subject))
+        end
+
+        it 'renders page with submitted inputs' do
+          expect(page).to have_content(subject.title)
+          expect(page).to have_content(subject.description)
+        end
+      end
+
+      context 'when all form fields were not filled up and submitted' do
+        before do
+          click_create
+        end
+
+        it 'does not create a category' do
+          expect(subject).to eq nil
+          expect(subject_count).to eq 0
+        end
+
+        it 'redirects back to form' do
+          expect(page).to have_current_path(categories_path)
+        end
+
+        it 'raises error' do
+          expect(page).to have_css('#form-error-wrap')
+        end
       end
     end
 
-    context 'When title is not unique' do
-      it do
-        existing_category
-        fill_in 'Title', with: 'not a unique title'
-        click_on 'Create Category'
-        expect(page).to have_content('Title has already been taken')
+    context 'when user not logged in and trying to create a category through url' do
+      before do
+        visit new_category_path
       end
-    end
 
-    context 'When description is not present' do
-      it do
-        fill_in 'Description', with: ''
-        click_on 'Create Category'
-        expect(page).to have_content("Description can't be blank")
+      it 'shows "not allowed" message' do
+        expect(page).to have_content('not allowed')
       end
-    end
-
-    context 'When description is shorter than minimum' do
-      it do
-        fill_in 'Description', with: 'a' * 9
-        click_on 'Create Category'
-        expect(page).to have_content('Description is too short (minimum is 10 characters)')
-      end
-    end
-
-    context 'When description is longer than maximum' do
-      it do
-        fill_in 'Description', with: 'a' * 101
-        click_on 'Create Category'
-        expect(page).to have_content('Description is too long (maximum is 100 characters)')
-      end
-    end
-  end
-
-  context 'With valid field values' do
-    before :each do
-      fill_in 'Title', with: 'Category Title'
-      fill_in 'Description', with: 'Category Description'
-      click_on 'Create Category'
-    end
-
-    it 'redirects to the created category' do
-      expect(page).to have_current_path(category_path(category))
-    end
-
-    it 'shows title' do
-      expect(page).to have_content('Category Title')
-    end
-
-    it 'shows description' do
-      expect(page).to have_content('Category Description')
-    end
-
-    it "title must equal 'Category Title'" do
-      expect(category.title).to eq('Category Title')
-    end
-
-    it "description must equal 'Category Description'" do
-      expect(category.description).to eq('Category Description')
-    end
-
-    it 'increases count by 1' do
-      expect(category_count).to eq 1
     end
   end
 end
