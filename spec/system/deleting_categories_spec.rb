@@ -1,41 +1,48 @@
 require 'rails_helper'
 
-RSpec.describe "DeletingCategories", type: :system do
+RSpec.describe 'DeletingCategories', type: :system do
   before do
     driven_by(:rack_test)
+    sign_in user
   end
 
-  let(:id) { Category.find_by(title: 'Category Title').id }
-  let(:category_count) { Category.count }
-  let(:category) { Category.find_by(title: 'Category Title') }
-
-  before :each do
-    visit new_category_path
-    fill_in 'Title', with: 'Category Title'
-    fill_in 'Description', with: 'Category Description'
-    click_on 'Create Category'
-    visit root_path
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
   end
 
-  it "goes to the 'index' page" do
-    expect(page).to have_current_path('/')
-  end
+  describe Category do
+    let(:attributes) do
+      {
+        title: 'Category Title',
+        description: 'Category Description',
+        user_id: user.id
+      }
+    end
 
-  it 'shows title' do
-    expect(page).to have_content('Category Title')
-  end
+    subject { described_class.create(attributes) }
+    let(:click_destroy) { find("a[href='/categories/#{subject.id}']").click }
 
-  it 'shows description' do
-    expect(page).to have_content('Category Description')
-  end
+    before do
+      subject
+      visit category_path(subject)
+    end
 
-  it 'decreases category count by 1' do
-    click_link 'Destroy'
-    expect(category_count).to eq 0
-  end
+    context 'when category was created' do
+      it 'redirects to itself' do
+        expect(page).to have_current_path(category_path(subject))
+      end
+    end
 
-  it 'category is deleted' do
-    click_link 'Destroy'
-    expect(category).to eq nil
+    context 'with that category can be deleted' do
+      before do
+        click_destroy
+      end
+
+      it 'deletes the category' do
+        expect(Category.find_by(attributes)).to eq nil
+        expect(Category.count).to eq 0
+      end
+    end
   end
 end
