@@ -1,135 +1,159 @@
 require 'rails_helper'
 
 RSpec.describe 'Categories', type: :request do
-  let(:valid_attributes) do
-    {
-      title: 'Category Title',
-      description: 'Category Description'
-    }
-  end
-  let(:invalid_attributes) do
-    {
-      title: nil,
-      description: nil
-    }
-  end
-  let(:new_attributes) do
-    {
-      title: 'Category Title Edited',
-      description: 'Category Description Edited'
-    }
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
   end
 
-  subject do
-    Category.new(valid_attributes)
+  before do
+    user
   end
 
-  let(:subject_save) { subject.save }
-  let(:category_count) { Category.count }
-
-  describe 'GET /index' do
-    it 'finishes method successfully' do
-      get categories_path
-      expect(response).to be_successful
+  describe Category do
+    let(:valid_attributes) do
+      {
+        title: 'Category Title',
+        description: 'Category Description',
+        user_id: user.id
+      }
     end
-  end
 
-  describe 'GET /show' do
-    it 'finishes method successfully' do
-      subject_save
-      get category_path(subject)
-      expect(response).to be_successful
+    let(:invalid_attributes) do
+      {
+        title: nil,
+        description: nil,
+        user_id: nil
+      }
     end
-  end
 
-  describe 'GET /new' do
-    it 'finishes method successfully' do
-      get new_category_path
-      expect(response).to be_successful
-    end
-  end
+    subject { described_class.create(valid_attributes) }
+    let(:subject_count) { Category.count }
 
-  describe 'GET /edit' do
-    it 'finishes method successfully' do
-      subject_save
-      get edit_category_path(subject)
-      expect(response).to be_successful
-    end
-  end
-
-  describe 'POST /create' do
-    context 'With invalid parameters' do
-      it "category count remains the same" do
-        expect {
-          post categories_path, params: { category: invalid_attributes }
-        }.to change(Category, :count).by(0)
+    describe 'GET /index' do
+      before do
+        get categories_path
       end
 
-      it "remains in the 'new' page)" do
-        post categories_path, params: { category: invalid_attributes }
+      it 'responds successfully' do
+        expect(response).to be_successful
+      end
+
+      # pending "add some examples (or delete) #{__FILE__}"
+    end
+
+    describe 'GET /show' do
+      before do
+        get category_path(subject)
+      end
+
+      it 'responds successfully' do
         expect(response).to be_successful
       end
     end
 
-    context 'With valid parameters' do
-      it "increases category count by 1" do
-        expect {
+    describe 'GET /new' do
+      before do
+        get new_category_path
+      end
+
+      it 'responds successfully' do
+        expect(response).to be_successful
+      end
+    end
+
+    describe 'GET /edit' do
+      before do
+        get edit_category_path(subject)
+      end
+
+      it 'responds successfully' do
+        expect(response).to be_successful
+      end
+    end
+
+    describe 'POST /create' do
+      context 'when valid' do
+        before do
+          subject
           post categories_path, params: { category: valid_attributes }
-        }.to change(Category, :count).by(1)
+        end
+
+        it 'creates a category' do
+          expect(subject_count).to eq 1
+        end
+
+        it 'responds successfully' do
+          expect(response).to be_successful
+        end
       end
 
-      it "redirects to the created category" do
-        post categories_path, params: { category: valid_attributes }
-        expect(response).to redirect_to(category_path(Category.last))
-      end
-    end
-  end
+      context 'when invalid' do
+        before do
+          post categories_path, params: { category: invalid_attributes }
+        end
 
-  describe 'PATCH /update' do
-    context 'With invalid parameters' do
-      it "remains in the 'edit' page)" do
-        subject_save
-        patch category_path(subject), params: { category: invalid_attributes }
-        expect(response).to be_successful
-      end
-    end
+        it 'does not create a category' do
+          expect(subject_count).to eq 0
+        end
 
-    context 'With valid parameters' do
-      it "updates the category title" do
-        subject_save
-        patch category_path(subject), params: { category: new_attributes }
-        subject.reload
-        expect(subject.title).to eq('Category Title Edited')
-      end
-
-      it "updates the category description" do
-        subject_save
-        patch category_path(subject), params: { category: new_attributes }
-        subject.reload
-        expect(subject.description).to eq('Category Description Edited')
-      end
-
-      it "redirects to the updated category" do
-        subject_save
-        patch category_path(subject), params: { category: new_attributes }
-        subject.reload
-        expect(response).to redirect_to(category_path(subject))
+        it 'responds successfully' do
+          expect(response).to be_successful
+        end
       end
     end
-  end
 
-  describe 'DELETE /destroy' do
-    it "decreases category count by 1" do
-      subject_save
-      expect {
+    describe 'PATCH /update' do
+      let(:new_attributes) do
+        {
+          title: 'Category Title Edited',
+          description: 'Category Description Edited'
+        }
+      end
+
+      let(:subject_updated) { Category.find_by(new_attributes) }
+
+      context 'when valid' do
+        before do
+          patch category_path(subject), params: { category: new_attributes }
+        end
+
+        it 'updates category' do
+          expect(subject_updated).to_not eq nil
+        end
+
+        it 'redirects to itself' do
+          expect(response).to redirect_to(category_path(subject))
+        end
+      end
+
+      context 'when invalid' do
+        before do
+          patch category_path(subject), params: { category: invalid_attributes }
+        end
+
+        it 'does not update category' do
+          expect(subject_updated).to eq nil
+        end
+
+        it 'responds successfully' do
+          expect(response).to be_successful
+        end
+      end
+    end
+
+    describe 'DELETE /destroy' do
+      before do
         delete category_path(subject)
-      }.to change(Category, :count).by(-1)
-    end
+      end
 
-    it "redirects to the 'index' page" do
-      subject_save
-      delete category_path(subject)
-      expect(response).to redirect_to(categories_path)
+      it 'deletes the category' do
+        expect(subject_count).to eq 0
+      end
+
+      it 'redirects to root path' do
+        expect(response).to redirect_to(root_path)
+      end
     end
   end
 end
