@@ -1,12 +1,59 @@
-<p>
-  <strong>Title:</strong>
-  <%= @category.title %>
-</p>
+<% if current_user %>
+  <h1>Title: <%= @category.title %></h1>
+  <p>Description: <%= @category.description %></p>
+  <%= link_to 'Edit', edit_category_path(@category) %>
 
-<p>
-  <strong>Description:</strong>
-  <%= @category.description %>
-</p>
+  <%= link_to 'Delete', category_path(@category),
+                      method: :delete,
+                      data: { confirm: 'Are you sure?' } %>
 
-<%= link_to 'Edit', edit_category_path(@category) %> |
-<%= link_to 'Back', categories_path %>
+  <div id="overdue-wrap">
+    <h2>Overdue Tasks</h2>
+
+    <ul>
+      <%= 'Nothing else here yet.' unless @category.tasks.find { |t| t.priority < Date.today } %>
+
+      <% @category.tasks.each do |task| %>
+        <% if task.priority < Date.today %>
+          <%= render task %>
+        <% end %>
+      <% end %>
+    </ul>
+  </div>
+
+  <div id="today-wrap">
+    <h2>Tasks for Today - <%= Date.today.strftime('%a, %d %b %Y') %></h2>
+
+    <ul>
+      <%= 'Nothing else here yet.' unless @category.tasks.find { |t| t.priority == Date.today } %>
+
+      <% @category.tasks.each do |task| %>
+        <% if task.priority == Date.today %>
+          <li><%= task.description %> -
+            <%= link_to 'Edit', edit_category_task_path(@category, task) %> -
+            <%= link_to 'Delete', [task.category, task],
+                          method: :delete,
+                          data: { confirm: 'Are you sure?' } %></li>
+        <% end %>
+      <% end %>
+    </ul>
+  </div>
+
+  <div id="future-wrap">
+    <h2>Future Tasks</h2>
+
+    <ul>
+      <%= 'Nothing else here yet.' unless @category.tasks.find { |t| t.priority > Date.today } %>
+
+      <% @category.tasks.each do |task| %>
+        <% if task.priority > Date.today %>
+          <%= render task %>
+        <% end %>
+      <% end %>
+    </ul>
+  </div>
+
+  <%= render 'tasks/form' %>
+<% else %>
+  <%= render 'layouts/error' %>
+<% end %>
