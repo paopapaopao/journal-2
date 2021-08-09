@@ -20,9 +20,6 @@ RSpec.describe 'CreatingTasks', type: :system do
     end
 
     context 'when all form fields were filled up and submitted' do
-      let(:date_today) { Date.today }
-      let(:date_tomorrow) { date_today + 1 }
-
       let(:subject_description) { subject.description }
       let(:subject_priority) { subject.priority }
 
@@ -31,6 +28,8 @@ RSpec.describe 'CreatingTasks', type: :system do
       end
 
       context 'with priority date was date today' do
+        let(:date_today) { Date.today }
+
         before do
           fill_in 'task[priority]', with: date_today
           click_on 'Create Task'
@@ -54,6 +53,8 @@ RSpec.describe 'CreatingTasks', type: :system do
       end
 
       context 'with priority date was date tomorrow' do
+        let(:date_tomorrow) { Date.tomorrow }
+
         before do
           fill_in 'task[priority]', with: date_tomorrow
           click_on 'Create Task'
