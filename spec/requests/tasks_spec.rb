@@ -1,12 +1,19 @@
 require 'rails_helper'
 
 RSpec.describe 'Tasks', type: :request do
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
+  end
+
   let(:category) do
     Category.create(title: 'Category Title',
-                    description: 'Category Description')
+                    description: 'Category Description',
+                    user_id: user.id)
   end
 
   before do
+    user
     category
   end
 
@@ -15,6 +22,7 @@ RSpec.describe 'Tasks', type: :request do
       {
         description: 'Task Description',
         priority: Date.today,
+        user_id: user.id,
         category_id: category.id
       }
     end
@@ -23,6 +31,7 @@ RSpec.describe 'Tasks', type: :request do
       {
         description: nil,
         priority: nil,
+        user_id: nil,
         category_id: nil
       }
     end
@@ -73,9 +82,8 @@ RSpec.describe 'Tasks', type: :request do
     describe 'PATCH /update' do
       let(:new_attributes) do
         {
-          description: 'Task Details Edited',
-          priority: Date.tomorrow,
-          category_id: category.id
+          description: 'Task Description Edited',
+          priority: Date.tomorrow
         }
       end
 
