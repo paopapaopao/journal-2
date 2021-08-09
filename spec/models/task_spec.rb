@@ -1,66 +1,90 @@
 require 'rails_helper'
 
 RSpec.describe Task, type: :model do
-  let(:date_today) { Date.today }
-  let(:date_yesterday) { date_today - 1 }
-
-  let(:category_create) do
-    Category.create(title: 'Category Title',
-                    description: 'Category Description')
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
   end
 
-  before :each do
-    category_create
+  let(:category) do
+    Category.create(title: 'Category Title',
+                    description: 'Category Description',
+                    user_id: user.id)
   end
 
   subject do
-    described_class.new
+    described_class.new(description: 'Task Description',
+                        priority: Date.today,
+                        user_id: user.id,
+                        category_id: category.id)
   end
 
-  let :existing_category do
-    described_class.create(
-      description: 'description',
-      priority: date_today,
-      category_id: category_create.id
-    )
+  before do
+    user
+    category
   end
 
-  let(:task_on_category) { Task.reflect_on_association(:category).macro }
-
-  context 'When description is not present' do
-    context 'It is nil' do
-      it 'Invalid' do
-        subject.description = nil
-        expect(subject).to_not be_valid
-      end
+  context 'with associations' do
+    it 'belongs to a user' do
+      expect(Task.reflect_on_association(:user).macro).to eq :belongs_to
     end
 
-    context 'It is an empty string' do
-      it 'Invalid' do
-        subject.description = ''
-        expect(subject).to_not be_valid
-      end
+    it 'belongs to a category' do
+      expect(Task.reflect_on_association(:category).macro).to eq :belongs_to
     end
   end
 
-  context 'When description is shorter than minimum' do
-    it 'Invalid' do
-      subject.description = 'a' * 9
-      expect(subject).to_not be_valid
+  context 'when initialized' do
+    let(:subject_count) { Task.count }
+
+    it 'counts to zero to begin with' do
+      expect(subject_count).to eq 0
+    end
+
+    it 'counts to one after adding one' do
+      subject.save
+      expect(subject_count).to eq 1
     end
   end
 
-  context 'When description is longer than maximum' do
-    it 'Invalid' do
-      subject.description = 'a' * 101
-      expect(subject).to_not be_valid
-    end
-  end
-
-  context 'When description is between minimum and maximum' do
-    it 'Valid' do
-      subject.description = 'a' * 50
+  context 'with valid attributes' do
+    it 'does validate' do
       expect(subject).to be_valid
+    end
+  end
+
+  context 'without description' do
+    it 'does not validate' do
+      subject.description = nil
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'when description is not unique' do
+    before do
+      Task.create(description: subject.description,
+                  priority: subject.priority,
+                  user_id: subject.user_id,
+                  category_id: subject.category_id)
+    end
+
+    it 'does not validate' do
+      subject.description = 'Task Description'
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'when description is less than 10 characters' do
+    it 'does not validate' do
+      subject.description = 'A' * 9
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'when description is more than 100 characters' do
+    it 'does not validate' do
+      subject.description = 'A' * 101
+      expect(subject).to_not be_valid
     end
   end
 
@@ -73,14 +97,8 @@ RSpec.describe Task, type: :model do
 
   context 'when priority date is in the past' do
     it 'does not validate' do
-      subject.priority = date_yesterday
+      subject.priority -= 10
       expect(subject).to_not be_valid
-    end
-  end
-
-  context 'with associations' do
-    it 'belongs to a category' do
-      expect(task_on_category).to eq :belongs_to
     end
   end
 end
