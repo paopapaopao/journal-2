@@ -1,0 +1,5 @@
+<li><%= task.priority.strftime('%a, %d %b %Y') %> - <%= task.details %> -
+  <%= link_to 'Edit', edit_category_task_path(@category, task) %> -
+  <%= link_to 'Delete', [task.category, task],
+                        method: :delete,
+                        data: { confirm: 'Are you sure?' } %></li>

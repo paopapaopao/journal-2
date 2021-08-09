@@ -1,0 +1,8 @@
+<%= form_with model: [@category, @category.tasks.build] do |f| %>
+  <%= f.hidden_field :user_id, value: current_user.id %>
+  <%= f.label :details %>
+  <%= f.text_area :details %>
+  <%= f.label :priority, 'Priority Date' %>
+  <%= f.datetime_field :priority, id: 'datepicker', type: '' %>
+  <%= f.submit %>
+<% end %>
