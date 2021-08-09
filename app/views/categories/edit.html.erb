@@ -1,3 +1,6 @@
-<h1>Editing Category</h1>
-
-<%= render 'form', category: @category %>
+<% if current_user %>
+  <h1>Edit Category</h1>
+  <%= render 'form', category: @category %>
+<% else %>
+  <%= render 'layouts/error' %>
+<% end %>
