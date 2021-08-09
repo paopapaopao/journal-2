@@ -1,31 +1,40 @@
-<p id="notice"><%= notice %></p>
+<% if current_user %>
+  <%= link_to "Log Out", destroy_user_session_path, method: :delete %>
 
-<h1>Categories</h1>
+  <div id="today-wrap">
+    <h2>Tasks for Today</h2>
+    <p><%= 'No tasks for today.' unless @categories.find { |c| c.tasks.find { |t| t.priority == Date.today} } %></p>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Title</th>
-      <th>Description</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
+    <% @categories.each do |category| %>
+      <h3><%= category.title %></h3>
 
-  <tbody>
-    <% current_user.categories.each do |category| %>
-      <tr>
-        <td><%= category.id %></td>
-        <td><%= category.title %></td>
-        <td><%= category.description %></td>
-        <td><%= link_to 'Show', category %></td>
-        <td><%= link_to 'Edit', edit_category_path(category) %></td>
-        <td><%= link_to 'Destroy', category, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
+      <ul>
+        <%= 'No tasks yet.' unless category.tasks.find { |t| t.priority == Date.today } %>
+
+        <% category.tasks.each do |task| %>
+          <% if task.priority == Date.today %>
+            <li><%= task.details %></li>
+          <% end %>
+        <% end %>
+      </ul>
     <% end %>
-  </tbody>
-</table>
+  </div>
 
-<br>
+  <h2>Categories</h2>
+  <p><%= 'Create a new category now!' if @categories.count.zero? %></p>
 
-<%= link_to 'New Category', new_category_path %>
+  <ul class="list-group">
+    <% @categories.each do |category| %>
+      <li class="list-group-item"><%= link_to category.title, category %> - <%= category.details %></li>
+    <% end %>
+  </ul>
+
+  <div>
+    <%= link_to 'New Category', new_category_path %>
+  </div>
+<% else %>
+  <p>
+    Please <%= link_to 'log in', new_user_session_path %> to start building your journal!
+    Or click <%= link_to 'here', new_user_registration_path %> if you don't have an account yet.
+  </p>
+<% end %>
