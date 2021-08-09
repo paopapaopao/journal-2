@@ -1,96 +1,88 @@
 require 'rails_helper'
 
 RSpec.describe Category, type: :model do
-  subject { described_class.new }
-
-  let :existing_category do
-    described_class.create(
-      title: 'not a unique title',
-      description: 'description'
-    )
+  let(:user) do
+    User.create(email: 'example@mail.com',
+                password: 'password')
   end
 
-  let(:category_on_tasks) { Category.reflect_on_association(:tasks).macro }
-
-  context 'When title is not present' do
-    context 'It is nil' do
-      it do
-        subject.title = nil
-        expect(subject).to_not be_valid
-      end
-    end
-
-    context 'It is an empty string' do
-      it do
-        subject.title = ''
-        expect(subject).to_not be_valid
-      end
-    end
+  subject do
+    described_class.new(title: 'Category Title',
+                        description: 'Category Description',
+                        user_id: user.id)
   end
 
-  context 'When title is not unique' do
-    it do
-      existing_category
-      subject.title = 'not a unique title'
-      expect(subject).to_not be_valid
+  before do
+    user
+  end
+
+  context 'with associations' do
+    it 'belongs to a user' do
+      expect(Category.reflect_on_association(:user).macro).to eq :belongs_to
+    end
+
+    it 'has many tasks' do
+      expect(Category.reflect_on_association(:tasks).macro).to eq :has_many
     end
   end
 
-  context 'When title is unique' do
-    it do
-      subject.title = 'unique title'
-      expect(subject).to_not be_valid
+  context 'when initialized' do
+    let(:subject_count) { Category.count }
+
+    it 'counts to zero to begin with' do
+      expect(subject_count).to eq 0
+    end
+
+    it 'counts to one after adding one' do
+      subject.save
+      expect(subject_count).to eq 1
     end
   end
 
-  context 'When description is not present' do
-    context 'It is nil' do
-      it do
-        subject.description = nil
-        expect(subject).to_not be_valid
-      end
-    end
-
-    context 'It is an empty string' do
-      it do
-        subject.description = ''
-        expect(subject).to_not be_valid
-      end
-    end
-  end
-
-  context 'When description is shorter than minimum' do
-    it do
-      subject.description = 'a' * 9
-      expect(subject).to_not be_valid
-    end
-  end
-
-  context 'When description is longer than maximum' do
-    it do
-      subject.description = 'a' * 101
-      expect(subject).to_not be_valid
-    end
-  end
-
-  context 'When description is between minimum and maximum' do
-    it do
-      subject.description = 'a' * 50
-      expect(subject).to_not be_valid
-    end
-  end
-
-  context 'When both attributes are valid' do
-    it do
-      subject.title = 'title'
-      subject.description = 'description'
+  context 'with valid attributes' do
+    it 'does validate' do
       expect(subject).to be_valid
     end
   end
 
-  context 'with associations' do
-    it 'has many tasks' do
-      expect(category_on_tasks).to eq :has_many
+  context 'without a title' do
+    it 'does not validate' do
+      subject.title = nil || ''
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'when title is not unique' do
+    before do
+      Category.create(title: subject.title,
+                      description: subject.description,
+                      user_id: subject.user_id)
+    end
+
+    it 'does not validate' do
+      subject.title = 'Category Title'
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'without description' do
+    it 'does not validate' do
+      subject.description = nil
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'when description is less than 10 characters' do
+    it 'does not validate' do
+      subject.description = 'A' * 9
+      expect(subject).to_not be_valid
+    end
+  end
+
+  context 'when description is more than 100 characters' do
+    it 'does not validate' do
+      subject.description = 'A' * 101
+      expect(subject).to_not be_valid
     end
   end
 end
