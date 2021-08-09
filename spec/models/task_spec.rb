@@ -1,6 +1,9 @@
 require 'rails_helper'
 
 RSpec.describe Task, type: :model do
+  let(:date_today) { Date.today }
+  let(:date_yesterday) { date_today - 1 }
+
   let(:category_create) do
     Category.create(title: 'Category Title',
                     description: 'Category Description')
@@ -17,6 +20,7 @@ RSpec.describe Task, type: :model do
   let :existing_category do
     described_class.create(
       description: 'description',
+      priority: date_today,
       category_id: category_create.id
     )
   end
@@ -57,6 +61,20 @@ RSpec.describe Task, type: :model do
     it 'Valid' do
       subject.description = 'a' * 50
       expect(subject).to be_valid
+    end
+  end
+
+  context 'without priority date' do
+    it 'does validate' do
+      subject.priority = nil
+      expect(subject).to be_valid
+    end
+  end
+
+  context 'when priority date is in the past' do
+    it 'does not validate' do
+      subject.priority = date_yesterday
+      expect(subject).to_not be_valid
     end
   end
 
