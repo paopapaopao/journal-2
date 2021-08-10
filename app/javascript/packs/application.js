@@ -10,6 +10,7 @@ import "channels"
 
 import "bootstrap"
 import "jquery-ui"
+import "packs/custom"
 
 Rails.start()
 // Turbolinks.start()
