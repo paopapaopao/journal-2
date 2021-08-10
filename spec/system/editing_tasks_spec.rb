@@ -105,8 +105,8 @@ RSpec.describe 'EditingTasks', type: :system do
         visit edit_category_task_path(category, subject)
       end
 
-      it 'shows "not allowed" message' do
-        expect(page).to have_content('not allowed')
+      it 'shows "sign in" message' do
+        expect(page).to have_content('need to sign in')
       end
     end
   end

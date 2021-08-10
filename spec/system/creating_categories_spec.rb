@@ -75,7 +75,7 @@ RSpec.describe 'CreatingCategories', type: :system do
         end
 
         it 'raises error' do
-          expect(page).to have_css('#form-error-wrap')
+          expect(page).to have_css('#error-explanation')
         end
       end
     end
@@ -85,8 +85,8 @@ RSpec.describe 'CreatingCategories', type: :system do
         visit new_category_path
       end
 
-      it 'shows "not allowed" message' do
-        expect(page).to have_content('not allowed')
+      it 'shows "sign in" message' do
+        expect(page).to have_content('need to sign in')
       end
     end
   end
