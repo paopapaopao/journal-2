@@ -12,11 +12,6 @@ RSpec.describe 'Tasks', type: :request do
                     user_id: user.id)
   end
 
-  before do
-    user
-    category
-  end
-
   describe Task do
     let(:valid_attributes) do
       {
@@ -39,96 +34,166 @@ RSpec.describe 'Tasks', type: :request do
     subject { described_class.create(valid_attributes) }
     let(:subject_count) { Task.count }
 
-    describe 'GET /edit' do
-      it 'responds sucessfully' do
-        get edit_category_task_path(category, subject)
-        expect(response).to be_successful
+    context 'when user signed in' do
+      before do
+        sign_in user
+        category
       end
 
-      # pending "add some examples (or delete) #{__FILE__}"
-    end
-
-    describe 'POST /create' do
-      context 'when valid' do
-        before do
-          subject
-          post category_tasks_path(category), params: { task: valid_attributes }
+      describe 'GET /index' do
+        it 'raises error' do
+          expect do
+            get category_tasks_url(category)
+          end.to raise_error(ActionController::RoutingError)
         end
 
-        it 'creates a task' do
-          expect(subject_count).to eq 1
-        end
-
-        it 'redirects to its category' do
-          expect(response).to redirect_to(category_path(category))
-        end
+        # pending "add some examples (or delete) #{__FILE__}"
       end
 
-      context 'when invalid' do
-        before do
-          post category_tasks_path(category), params: { task: invalid_attributes }
-        end
-
-        it 'does not create a task' do
-          expect(subject_count).to eq 0
-        end
-
-        it 'redirects to its category' do
-          expect(response).to redirect_to(category_path(category))
-        end
-      end
-    end
-
-    describe 'PATCH /update' do
-      let(:new_attributes) do
-        {
-          description: 'Task Description Edited',
-          priority: Date.tomorrow
-        }
-      end
-
-      let(:subject_updated) { Task.find_by(new_attributes) }
-
-      context 'when valid' do
-        before do
-          patch category_task_path(category, subject), params: { task: new_attributes }
-        end
-
-        it 'updates task' do
-          expect(subject_updated).to_not eq nil
-        end
-
-        it 'redirects to itself' do
-          expect(response).to redirect_to(category_path(category))
+      describe 'GET /show' do
+        it 'raises error' do
+          expect do
+            get category_task_url(category, subject)
+          end.to raise_error(ActionController::RoutingError)
         end
       end
 
-      context 'when invalid' do
-        before do
-          patch category_task_path(category, subject), params: { task: invalid_attributes }
+      describe 'GET /new' do
+        it 'raises error' do
+          expect do
+            get "/categories/#{category.id}/tasks/new"
+          end.to raise_error(ActionController::RoutingError)
         end
+      end
 
-        it 'does not update task' do
-          expect(subject_updated).to eq nil
-        end
-
-        it 'responds successfully' do
+      describe 'GET /edit' do
+        it 'responds sucessfully' do
+          get edit_category_task_url(category, subject)
           expect(response).to be_successful
         end
       end
+
+      describe 'POST /create' do
+        context 'when valid' do
+          before do
+            post category_tasks_url(category), params: { task: valid_attributes }
+          end
+
+          it 'creates a task' do
+            expect(subject_count).to eq 1
+          end
+
+          it 'redirects to its category' do
+            expect(response).to redirect_to(category_url(category))
+          end
+        end
+
+        context 'when invalid' do
+          before do
+            post category_tasks_url(category), params: { task: invalid_attributes }
+          end
+
+          it 'does not create a task' do
+            expect(subject_count).to eq 0
+          end
+
+          it 'redirects to its category' do
+            expect(response).to redirect_to(category_url(category))
+          end
+        end
+      end
+
+      describe 'PATCH /update' do
+        let(:new_attributes) do
+          {
+            description: 'Task Description Edited',
+            priority: Date.tomorrow
+          }
+        end
+
+        let(:subject_updated) { Task.find_by(new_attributes) }
+
+        context 'when valid' do
+          before do
+            patch category_task_url(category, subject), params: { task: new_attributes }
+          end
+
+          it 'updates task' do
+            expect(subject_updated).to_not eq nil
+          end
+
+          it 'redirects to itself' do
+            expect(response).to redirect_to(category_url(category))
+          end
+        end
+
+        context 'when invalid' do
+          before do
+            patch category_task_url(category, subject), params: { task: invalid_attributes }
+          end
+
+          it 'does not update task' do
+            expect(subject_updated).to eq nil
+          end
+
+          it 'responds successfully' do
+            expect(response).to be_successful
+          end
+        end
+      end
+
+      describe 'DELETE /destroy' do
+        before do
+          delete category_task_url(category, subject)
+        end
+
+        it 'deletes the task' do
+          expect(subject_count).to eq 0
+        end
+
+        it 'redirects to all categories' do
+          expect(response).to redirect_to(category_url(category))
+        end
+      end
     end
 
-    describe 'DELETE /destroy' do
+    context 'when user not signed in' do
       before do
-        delete category_task_path(category, subject)
+        category
       end
 
-      it 'deletes the task' do
-        expect(subject_count).to eq 0
+      describe 'GET /index' do
+        it 'raises error' do
+          expect do
+            get category_tasks_url(category)
+          end.to raise_error(ActionController::RoutingError)
+        end
       end
 
-      it 'redirects to root path' do
-        expect(response).to redirect_to(category_path(category))
+      describe 'GET /show' do
+        it 'raises error' do
+          expect do
+            get category_task_url(category, subject)
+          end.to raise_error(ActionController::RoutingError)
+        end
+      end
+
+      describe 'GET /new' do
+        it 'raises error' do
+          expect do
+            get "/categories/#{category.id}/tasks/new"
+          end.to raise_error(ActionController::RoutingError)
+        end
+      end
+
+      describe 'GET /edit' do
+        before do
+          get edit_category_task_url(category, subject)
+        end
+
+        it 'redirects to log in' do
+          expect(response).to redirect_to(new_user_session_path)
+        end
       end
     end
   end
