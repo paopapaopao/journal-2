@@ -12,6 +12,44 @@ RSpec.describe User, type: :model do
 
   let(:user_on_categories) { User.reflect_on_association(:categories).macro }
 
+  context 'with associations' do
+    it 'has many categories' do
+      expect(User.reflect_on_association(:categories).macro).to eq :has_many
+    end
+
+    it 'has many tasks' do
+      expect(User.reflect_on_association(:tasks).macro).to eq :has_many
+    end
+  end
+
+  context 'with dependents' do
+    let(:category) do
+      Category.create(title: 'Category Title',
+                      description: 'Category Description',
+                      user_id: existing_user.id)
+    end
+
+    let(:task) do
+      Task.create(description: 'Task Description',
+                  priority: Date.today,
+                  user_id: existing_user.id,
+                  category_id: category.id)
+    end
+
+    it 'deletes its categories' do
+      category
+      existing_user.destroy
+      expect(Category.find_by(user_id: existing_user.id)).to eq nil
+    end
+
+    it 'deletes its tasks' do
+      category
+      task
+      existing_user.destroy
+      expect(Task.find_by(user_id: existing_user.id)).to eq nil
+    end
+  end
+
   context 'When email address is not present' do
     context 'It is nil' do
       it do
