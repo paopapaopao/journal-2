@@ -85,8 +85,8 @@ RSpec.describe 'ViewingCategories', type: :system do
             visit category_path(subject)
           end
 
-          it 'shows "not allowed" message' do
-            expect(page).to have_content('not allowed')
+          it 'shows "sign in" message' do
+            expect(page).to have_content('need to sign in')
           end
         end
       end

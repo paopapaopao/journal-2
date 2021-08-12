@@ -3,6 +3,7 @@ class Task < ApplicationRecord
   belongs_to :user
 
   validates :description, presence: true,
+                          uniqueness: true,
                           length: { minimum: 10, maximum: 100 }
 
   validate :priority_date_cannot_be_in_the_past

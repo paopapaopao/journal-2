@@ -1,4 +1,4 @@
-<% if current_user %>
+<% if user_signed_in? %>
   <%= link_to "Log Out", destroy_user_session_path, method: :delete %>
 
   <div id="today-wrap">
@@ -6,26 +6,30 @@
     <p><%= 'No tasks for today.' unless @categories.find { |c| c.tasks.find { |t| t.priority == Date.today} } %></p>
 
     <% @categories.each do |category| %>
-      <h3><%= category.title %></h3>
+      <% if category.user == current_user %>
+        <h3><%= category.title %></h3>
 
-      <ul>
-        <%= 'No tasks yet.' unless category.tasks.find { |t| t.priority == Date.today } %>
+        <ul>
+          <%= 'No tasks yet.' unless category.tasks.find { |t| t.priority == Date.today } %>
 
-        <% category.tasks.each do |task| %>
-          <% if task.priority == Date.today %>
-            <li><%= task.details %></li>
+          <% category.tasks.each do |task| %>
+            <% if task.priority == Date.today %>
+              <li><%= task.description %></li>
+            <% end %>
           <% end %>
-        <% end %>
-      </ul>
+        </ul>
+      <% end %>
     <% end %>
   </div>
 
   <h2>Categories</h2>
-  <p><%= 'Create a new category now!' if @categories.count.zero? %></p>
+  <p><%= 'Create a new category now!' unless @categories.find { |c| c.user == current_user } %></p>
 
   <ul class="list-group">
     <% @categories.each do |category| %>
-      <li class="list-group-item"><%= link_to category.title, category %> - <%= category.details %></li>
+      <% if category.user == current_user %>
+        <li class="list-group-item"><%= link_to category.title, category %> - <%= category.description %></li>
+      <% end %>
     <% end %>
   </ul>
 
